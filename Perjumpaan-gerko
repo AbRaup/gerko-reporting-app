@@ -1,0 +1,98 @@
+import React, { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+
+export default function App() {
+  const [reports, setReports] = useState([]);
+  const [form, setForm] = useState({ date: "", time: "", location: "", plannedActivity: "", notes: "", teacher: "", unit: "", images: [] });
+  const [logo, setLogo] = useState("/default-logo.png");
+
+  const handleChange = (e) => {
+    if (e.target.name === "images") {
+      const files = Array.from(e.target.files).slice(0, 4);
+      const imageUrls = files.map(file => URL.createObjectURL(file));
+      setForm({ ...form, images: imageUrls });
+    } else {
+      setForm({ ...form, [e.target.name]: e.target.value });
+    }
+  };
+
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const logoUrl = URL.createObjectURL(file);
+      setLogo(logoUrl);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setReports([...reports, form]);
+    setForm({ date: "", time: "", location: "", plannedActivity: "", notes: "", teacher: "", unit: "", images: [] });
+  };
+
+  const sendToWhatsApp = (report) => {
+    const phoneNumber = "01131683980";
+    const message = `Laporan Perjumpaan GERKO%0A%0A` +
+      `Guru: ${report.teacher}%0A` +
+      `Unit GERKO: ${report.unit}%0A` +
+      `Aktiviti Dirancang: ${report.plannedActivity}%0A` +
+      `Tarikh: ${report.date}%0A` +
+      `Masa: ${report.time}%0A` +
+      `Tempat: ${report.location}%0A` +
+      `Catatan: ${report.notes}`;
+    
+    window.open(`https://wa.me/${phoneNumber}?text=${message}`, "_blank");
+  };
+
+  return (
+    <div className="flex flex-col items-center p-6 min-h-screen bg-gradient-to-br from-indigo-500 to-purple-700 text-white font-sans">
+      <img src={logo} alt="Logo Sekolah" className="w-32 h-32 mb-4 rounded-full shadow-lg border-4 border-white" />
+      <h2 className="text-2xl font-bold text-center">SK TAMPI - TAMPI SEMPORNA SABAH</h2>
+      <h3 className="text-lg font-semibold text-center mb-6">UNIT KOKURIKULUM SESI 2025 / 2026</h3>
+      <Input type="file" accept="image/*" onChange={handleLogoChange} className="mb-6 text-sm bg-white text-black rounded-lg p-2" />
+      <Card className="w-full max-w-xl bg-white text-black shadow-2xl rounded-3xl">
+        <CardContent className="p-8">
+          <h1 className="text-3xl font-bold mb-6 text-center text-indigo-700">Laporan Perjumpaan GERKO</h1>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input className="border-gray-300 rounded-lg p-2" type="text" name="teacher" placeholder="Nama Guru" value={form.teacher} onChange={handleChange} required />
+            <Input className="border-gray-300 rounded-lg p-2" type="text" name="unit" placeholder="Unit GERKO" value={form.unit} onChange={handleChange} required />
+            <Input className="border-gray-300 rounded-lg p-2" type="date" name="date" value={form.date} onChange={handleChange} required />
+            <Input className="border-gray-300 rounded-lg p-2" type="time" name="time" value={form.time} onChange={handleChange} required />
+            <Input className="border-gray-300 rounded-lg p-2" type="text" name="location" placeholder="Tempat" value={form.location} onChange={handleChange} required />
+            <Input className="border-gray-300 rounded-lg p-2" type="text" name="plannedActivity" placeholder="Aktiviti Dirancang" value={form.plannedActivity} onChange={handleChange} required />
+            <Textarea className="border-gray-300 rounded-lg p-2" name="notes" placeholder="Catatan" value={form.notes} onChange={handleChange} required />
+            <Input className="border-gray-300 rounded-lg p-2" type="file" name="images" accept="image/*" multiple onChange={handleChange} />
+            <p className="text-sm text-gray-500">Maksimum 4 gambar</p>
+            <Button className="w-full bg-indigo-700 hover:bg-indigo-800 text-white font-bold py-3 rounded-lg shadow-md" type="submit">Hantar Laporan</Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <div className="w-full max-w-xl mt-8">
+        <h2 className="text-2xl font-bold text-center mb-4">Senarai Laporan</h2>
+        {reports.map((report, index) => (
+          <Card key={index} className="mt-4 bg-white text-black shadow-lg rounded-3xl">
+            <CardContent className="p-6">
+              <p><strong>Guru:</strong> {report.teacher}</p>
+              <p><strong>Unit GERKO:</strong> {report.unit}</p>
+              <p><strong>Tarikh:</strong> {report.date}</p>
+              <p><strong>Masa:</strong> {report.time}</p>
+              <p><strong>Tempat:</strong> {report.location}</p>
+              <p><strong>Aktiviti Dirancang:</strong> {report.plannedActivity}</p>
+              <p><strong>Catatan:</strong> {report.notes}</p>
+              <Button className="mt-4 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-md w-full" onClick={() => sendToWhatsApp(report)}>Hantar ke WhatsApp</Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Konfigurasi untuk hosting di Vercel
+export const config = {
+  runtime: "edge",
+};
